@@ -124,17 +124,4 @@ struct PINSetupView: View {
     }
 }
 
-#Preview("PIN Entry") {
-    PINEntryView(
-        isPresented: .constant(true),
-        authManager: AuthManager(),
-        onSuccess: {}
-    )
-}
 
-#Preview("PIN Setup") {
-    PINSetupView(
-        isPresented: .constant(true),
-        authManager: AuthManager()
-    )
-}

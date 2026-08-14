@@ -18,3 +18,12 @@ Package.resolved
 
 # Release artifacts
 dist/
+
+# Sensitive / runtime data (anti-theft)
+captures/
+queue/
+.env
+*.p12
+*.pem
+*.mobileprovision
+codesign/

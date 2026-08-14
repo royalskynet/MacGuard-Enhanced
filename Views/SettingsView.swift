@@ -785,6 +785,4 @@ struct CheckForUpdatesButton: View {
     }
 }
 
-#Preview {
-    SettingsView(alarmManager: AlarmStateManager())
-}
+

@@ -316,6 +316,4 @@ class ActivityLogWindowController: NSObject, NSWindowDelegate {
     }
 }
 
-#Preview {
-    ActivityLogView()
-}
+

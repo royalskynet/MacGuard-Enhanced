@@ -435,6 +435,4 @@ struct OverlaySecureTextField: NSViewRepresentable {
     }
 }
 
-#Preview {
-    CountdownOverlayView(alarmManager: AlarmStateManager())
-}
+

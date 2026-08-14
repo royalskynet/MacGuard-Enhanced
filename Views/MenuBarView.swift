@@ -282,7 +282,4 @@ struct MenuBarView: View {
     }
 }
 
-#Preview {
-    MenuBarView()
-        .environmentObject(AlarmStateManager())
-}
+
