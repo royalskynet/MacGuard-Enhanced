@@ -24,6 +24,12 @@ struct MacGuardApp: App {
     private let updateManager = UpdateManager.shared
 
     init() {
+#if DEBUG
+        if CommandLine.arguments.contains("--self-notify") {
+            DispatchQueue.main.async { NotificationSelfTest.run() }
+            return
+        }
+#endif
         // Check for updates on app launch (silent - only shows UI if update available)
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             UpdateManager.shared.checkForUpdatesInBackground()

@@ -251,6 +251,7 @@ struct ActivityLogView: View {
         case .bluetooth: return Theme.Accent.info
         case .input: return Theme.Accent.primary
         case .power: return Theme.Accent.warning
+        case .wifi: return Theme.Accent.warning
         }
     }
 }

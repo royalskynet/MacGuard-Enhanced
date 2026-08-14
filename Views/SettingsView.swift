@@ -10,6 +10,18 @@ struct SettingsView: View {
     @ObservedObject var alarmManager: AlarmStateManager
     @ObservedObject private var settings = AppSettings.shared
 
+    @State private var tgTestStatus: String?
+    @State private var tgTestDetail: String?
+    @State private var imTestStatus: String?
+    @State private var tokenInput: String = ""
+
+    /// Save the Telegram bot token into the Keychain and clear the input.
+    private func onSaveToken() {
+        guard let raw = tokenInput.nonEmpty else { return }
+        TelegramNotifier.shared.setToken(raw)
+        tokenInput = ""
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Modern header with animated top bar
@@ -93,6 +105,20 @@ struct SettingsView: View {
                     LaunchAtLoginToggle()
                 } header: {
                     Label("Startup", systemImage: "power")
+                }
+
+                // Notification Section
+                Section {
+                    notificationsSection
+                } header: {
+                    Label("Notifications", systemImage: "bell.badge.fill")
+                }
+
+                // Trigger & Camera Section
+                Section {
+                    triggerCameraSection
+                } header: {
+                    Label("Trigger & Camera", systemImage: "camera.fill")
                 }
 
                 // Event Log Section
@@ -435,6 +461,105 @@ struct SettingsView: View {
                 ActivityLogWindowController.shared.show()
             }
             .buttonStyle(GlassBorderedProminentButtonStyle(tint: Theme.Accent.primary))
+        }
+    }
+
+    // MARK: - Notifications Section
+
+    @ViewBuilder
+    private var notificationsSection: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+            Text("Receive alarm notifications. The bot token is stored in your Keychain; only the chat ID lives in preferences.")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+
+            TextField("Telegram Chat ID", text: $settings.telegramChatID)
+                .textFieldStyle(.roundedBorder)
+
+            HStack(spacing: Theme.Spacing.sm) {
+                SecureField("Telegram bot token (saved to Keychain)", text: $tokenInput)
+                    .textFieldStyle(.roundedBorder)
+                    .textContentType(.password)
+                Button("Save") { onSaveToken() }
+                    .buttonStyle(GlassSecondaryButtonStyle())
+                    .disabled(tokenInput.nonEmpty == nil)
+            }
+
+            TextField("iMessage recipient (own Apple ID / phone)", text: $settings.imessageRecipient)
+                .textFieldStyle(.roundedBorder)
+
+            Picker("iMessage backup", selection: Binding(
+                get: { settings.imessageMode },
+                set: { settings.imessageMode = $0 }
+            )) {
+                ForEach(iMessageMode.allCases) { mode in
+                    Text(mode.label).tag(mode)
+                }
+            }
+
+            // Test buttons
+            HStack(spacing: Theme.Spacing.md) {
+                Button {
+                    tgTestStatus = "sending…"
+                    tgTestDetail = nil
+                    NotificationRouter.shared.testTelegram { status, json in
+                        DispatchQueue.main.async {
+                            tgTestStatus = status
+                            tgTestDetail = json.map { "\($0)" } ?? ""
+                        }
+                    }
+                } label: {
+                    Label("Send Telegram Test", systemImage: "paperplane.fill")
+                }
+                .buttonStyle(GlassBorderedProminentButtonStyle(tint: Theme.Accent.primary))
+
+                Button("Test iMessage") {
+                    imTestStatus = NotificationRouter.shared.testiMessage() ? "sent" : "failed"
+                }
+                .buttonStyle(GlassSecondaryButtonStyle())
+            }
+
+            if let tgTestStatus {
+                HStack(spacing: Theme.Spacing.sm) {
+                    Image(systemName: tgTestStatus == "ok" ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .foregroundColor(tgTestStatus == "ok" ? Theme.StateColor.armed : Theme.StateColor.triggered)
+                    Text(tgTestStatus == "no_token_saved" ? "No token saved" : tgTestStatus)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    if let tgTestDetail {
+                        Text(tgTestDetail)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(2)
+                    }
+                }
+            }
+            if let imTestStatus {
+                HStack(spacing: Theme.Spacing.sm) {
+                    Image(systemName: imTestStatus == "sent" ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .foregroundColor(imTestStatus == "sent" ? Theme.StateColor.armed : Theme.StateColor.triggered)
+                    Text(imTestStatus == "sent" ? "iMessage sent" : "iMessage send failed")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+
+    // MARK: - Trigger & Camera Section
+
+    @ViewBuilder
+    private var triggerCameraSection: some View {
+        Toggle("Wi-Fi disconnect triggers alarm", isOn: $settings.wifiTriggerEnabled)
+        Toggle("Snapshot when armed (pre-alarm evidence)", isOn: $settings.preAlarmSnapshotEnabled)
+        Toggle("Lock screen the instant a trigger fires", isOn: $settings.lockOnTrigger)
+        Toggle("Spoken warning during countdown", isOn: $settings.speechWarningEnabled)
+
+        Picker("Capture interval while alarming", selection: $settings.captureInterval) {
+            Text("Every 2s").tag(2)
+            Text("Every 5s").tag(5)
+            Text("Every 10s").tag(10)
+            Text("Every 30s").tag(30)
         }
     }
 

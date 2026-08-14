@@ -14,6 +14,7 @@ enum ActivityLogCategory: String, CaseIterable, Codable {
     case bluetooth = "Bluetooth"
     case input = "Input"
     case power = "Power"
+    case wifi = "Wi-Fi"
 
     var icon: String {
         switch self {
@@ -25,6 +26,7 @@ enum ActivityLogCategory: String, CaseIterable, Codable {
         case .bluetooth: return "antenna.radiowaves.left.and.right"
         case .input: return "keyboard"
         case .power: return "bolt"
+        case .wifi: return "wifi.slash"
         }
     }
 }

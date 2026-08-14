@@ -75,6 +75,23 @@ enum AutoArmMode: String, CaseIterable, Identifiable {
     }
 }
 
+/// iMessage backup routing mode
+enum iMessageMode: String, CaseIterable, Identifiable {
+    case off = "off"              // iMessage disabled
+    case fallback = "fallback"    // send only when Telegram retries exhausted
+    case parallel = "parallel"    // always send both Telegram + iMessage
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .off: return "Off"
+        case .fallback: return "Backup only"
+        case .parallel: return "Always parallel"
+        }
+    }
+}
+
 /// Available alarm sounds
 enum AlarmSound: String, CaseIterable, Identifiable {
     // Bundled sound
@@ -149,6 +166,35 @@ class AppSettings: ObservableObject {
     @AppStorage("autoArmOnDeviceLeave") var autoArmOnDeviceLeave: Bool = false
     @AppStorage("autoArmGracePeriod") var autoArmGracePeriod: Int = 15
     @AppStorage("autoArmMode") private var autoArmModeRaw: String = AutoArmMode.allDevicesAway.rawValue
+
+    // MARK: - Notification Settings (Enhanced)
+    /// Telegram chat ID to receive alarm notifications
+    @AppStorage("telegramChatID") var telegramChatID: String = ""
+    /// iMessage recipient (own Apple ID / phone / email) for backup channel
+    @AppStorage("imessageRecipient") var imessageRecipient: String = ""
+    /// iMessage routing mode
+    @AppStorage("imessageMode") private var imessageModeRaw: String = iMessageMode.fallback.rawValue
+
+    // MARK: - Trigger & Camera Settings (Enhanced)
+    /// Camera capture interval in seconds during alarming
+    @AppStorage("captureInterval") var captureInterval: Int = 5
+    /// Speech warning loop during triggered countdown
+    @AppStorage("speechWarningEnabled") var speechWarningEnabled: Bool = true
+    /// Treat Wi-Fi disconnect while armed as a trigger source
+    @AppStorage("wifiTriggerEnabled") var wifiTriggerEnabled: Bool = false
+    /// Take a snapshot immediately on arm (pre-alarm evidence)
+    @AppStorage("preAlarmSnapshotEnabled") var preAlarmSnapshotEnabled: Bool = false
+    /// Lock the screen the instant an intrusion trigger fires
+    @AppStorage("lockOnTrigger") var lockOnTrigger: Bool = true
+
+    /// iMessage routing mode
+    var imessageMode: iMessageMode {
+        get { iMessageMode(rawValue: imessageModeRaw) ?? .fallback }
+        set {
+            imessageModeRaw = newValue.rawValue
+            objectWillChange.send()
+        }
+    }
 
     /// Auto-arm trigger mode (all devices away vs any device away)
     var autoArmMode: AutoArmMode {

@@ -10,6 +10,10 @@
     <key>NSBluetoothAlwaysUsageDescription</key>
     <string>MacGuard uses Bluetooth to detect your trusted devices and automatically disarm when you're nearby.</string>
 
+    <!-- Camera permission for taking photo evidence when the alarm triggers -->
+    <key>NSCameraUsageDescription</key>
+    <string>MacGuard captures photo evidence automatically when the anti-theft alarm triggers, to help identify unauthorized access.</string>
+
     <!-- Apple Events for volume control -->
     <key>NSAppleEventsUsageDescription</key>
     <string>MacGuard needs to control system volume to play the alarm at maximum volume.</string>

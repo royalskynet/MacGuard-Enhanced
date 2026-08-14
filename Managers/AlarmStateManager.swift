@@ -21,6 +21,12 @@ class AlarmStateManager: ObservableObject {
     let authManager = AuthManager()
     let audioManager = AlarmAudioManager()
 
+    // Enhanced module managers
+    private let screenLock = ScreenLockManager.shared
+    private let camera = CameraCaptureManager.shared
+    private let speech = SpeechWarner.shared
+    private let wifiMonitor = WiFiMonitor()
+
     // MARK: - Private Properties
 
     private var countdownTimer: Timer?
@@ -50,6 +56,7 @@ class AlarmStateManager: ObservableObject {
         sleepMonitor.delegate = self
         powerMonitor.delegate = self
         bluetoothManager.delegate = self
+        wifiMonitor.delegate = self
         checkPermissions()
         startPermissionPolling()
 
@@ -145,6 +152,13 @@ class AlarmStateManager: ObservableObject {
             self.hasAccessibilityPermission = true
             self.state = .armed
             ActivityLogManager.shared.log(.armed, "System armed - monitoring active")
+
+            // Enhanced side effects: notify + WiFi trigger monitoring + pre-alarm snapshot
+            NotificationRouter.shared.notify(.armed)
+            self.wifiMonitor.startMonitoring()
+            if AppSettings.shared.preAlarmSnapshotEnabled {
+                self.camera.capturePhoto()
+            }
         }
     }
 
@@ -195,6 +209,12 @@ class AlarmStateManager: ObservableObject {
         audioManager.stopAlarm()
         audioManager.unprepare()
         overlayController.hide()
+
+        // Enhanced cleanup: spare no loop / speech / WiFi and notify disarmed
+        wifiMonitor.stopMonitoring()
+        camera.stopCaptureLoop()
+        speech.stop()
+        NotificationRouter.shared.notify(.disarmed)
 
         state = .idle
         ActivityLogManager.shared.log(.disarmed, reason ?? "System disarmed")
@@ -248,6 +268,12 @@ class AlarmStateManager: ObservableObject {
         let duration = AppSettings.shared.countdownDuration
         countdownSeconds = duration
 
+        // Enhanced side effects on trigger: optional instant lock + notify
+        if AppSettings.shared.lockOnTrigger {
+            screenLock.lockScreen()
+        }
+        NotificationRouter.shared.notify(.trigger)
+
         // Show fullscreen overlay
         overlayController.show(alarmManager: self)
 
@@ -255,10 +281,14 @@ class AlarmStateManager: ObservableObject {
         if duration == 0 {
             audioManager.playAlarm()
             state = .alarming
+            startAlarmingSideEffects()
             ActivityLogManager.shared.log(.alarm, "Immediate alarm triggered (no countdown)")
         } else {
             state = .triggered
             startCountdown()
+            if AppSettings.shared.speechWarningEnabled {
+                speech.start(countdown: duration)
+            }
             ActivityLogManager.shared.log(.trigger, "Countdown started (\(duration)s)")
         }
     }
@@ -284,12 +314,22 @@ class AlarmStateManager: ObservableObject {
         // Show overlay and start alarm
         overlayController.show(alarmManager: self)
         audioManager.playAlarm()
+        NotificationRouter.shared.notify(.trigger)
 
         state = .alarming
+        startAlarmingSideEffects()
         ActivityLogManager.shared.log(.alarm, "ALARM ACTIVE")
     }
 
     // MARK: - Private Methods
+
+    /// Shared `.alarming` side effects: notify, start the photo evidence loop,
+    /// and announce the active alarm aloud.
+    private func startAlarmingSideEffects() {
+        NotificationRouter.shared.notify(.alarming)
+        camera.startCaptureLoop(interval: AppSettings.shared.captureInterval)
+        speech.announceActive()
+    }
 
     private func startCountdown() {
         countdownTimer?.invalidate()
@@ -304,6 +344,7 @@ class AlarmStateManager: ObservableObject {
                     // Start alarm
                     strongSelf.audioManager.playAlarm()
                     strongSelf.state = .alarming
+                    strongSelf.startAlarmingSideEffects()
                     ActivityLogManager.shared.log(.alarm, "Countdown expired - ALARM ACTIVE")
                 }
             }
@@ -413,6 +454,19 @@ extension AlarmStateManager: PowerMonitorDelegate {
     nonisolated func powerCableConnected() {
         Task { @MainActor in
             ActivityLogManager.shared.log(.power, "Power cable connected")
+        }
+    }
+}
+
+// MARK: - WiFiMonitorDelegate
+
+extension AlarmStateManager: WiFiMonitorDelegate {
+    nonisolated func wifiDisconnected() {
+        Task { @MainActor in
+            guard self.state == .armed else { return }
+            guard AppSettings.shared.wifiTriggerEnabled else { return }
+            ActivityLogManager.shared.log(.wifi, "Wi-Fi disconnected while armed - triggering")
+            self.trigger()
         }
     }
 }

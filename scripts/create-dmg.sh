@@ -93,7 +93,7 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << PLIST
     <key>SUPublicEDKey</key>
     <string>I7s26R56gqkm2GqhPOLdjcyK4YGcuEbSWsRBTEumlb8=</string>
     <key>SUEnableAutomaticChecks</key>
-    <true/>
+    <false/>
     <key>SUScheduledCheckInterval</key>
     <integer>86400</integer>
     <key>SUShowReleaseNotes</key>
@@ -104,6 +104,8 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << PLIST
     <true/>
     <key>NSBluetoothAlwaysUsageDescription</key>
     <string>MacGuard uses Bluetooth to detect your trusted devices for auto-disarm.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>MacGuard captures intruder evidence photos when the alarm is triggered. Photos are saved locally and sent to your notification channel.</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSPrincipalClass</key>
