@@ -29,6 +29,7 @@ class TelegramNotifier {
     private let queueDir: URL
     private let maxQueue = 100
     private let backoffDelays: [TimeInterval] = [5, 10, 30, 60]
+    private let formAllowed = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._*")
 
     private let session: URLSession
     private let workQueue = DispatchQueue(label: "com.macguard.telegram.work")
@@ -137,7 +138,8 @@ class TelegramNotifier {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        let body = "chat_id=\(chatID)&text=\(text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? text)"
+        let encodedChatID = chatID.addingPercentEncoding(withAllowedCharacters: formAllowed) ?? ""
+        let body = "chat_id=\(encodedChatID)&text=\(text.addingPercentEncoding(withAllowedCharacters: formAllowed) ?? "")"
         request.httpBody = body.data(using: .utf8)
 
         session.dataTask(with: request) { data, _, error in
@@ -296,9 +298,10 @@ class TelegramNotifier {
             NotificationLog.log("Sending photo \(photoPath) (\(size) B)")
         } else {
             contentType = "application/x-www-form-urlencoded"
+            let encodedChatID = chatID.addingPercentEncoding(withAllowedCharacters: formAllowed) ?? ""
             let text = (item.text + "\n[\(timestampString(item.timestamp))]")
-                .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-            body = "chat_id=\(chatID)&text=\(text)".data(using: .utf8) ?? Data()
+                .addingPercentEncoding(withAllowedCharacters: formAllowed) ?? ""
+            body = "chat_id=\(encodedChatID)&text=\(text)".data(using: .utf8) ?? Data()
         }
 
         request.setValue(contentType, forHTTPHeaderField: "Content-Type")
