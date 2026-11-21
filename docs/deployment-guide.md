@@ -28,7 +28,7 @@ git --version
 ```
 
 ### GitHub Repository Access
-- Clone URL: `https://github.com/shenglong209/MacGuard.git`
+- Clone URL: `https://github.com/royalskynet/MacGuard-Enhanced.git`
 - Write access required for releases
 
 ---
@@ -37,8 +37,8 @@ git --version
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/shenglong209/MacGuard.git
-cd MacGuard
+git clone https://github.com/royalskynet/MacGuard-Enhanced.git
+cd MacGuard-Enhanced
 ```
 
 ### 2. Resolve Dependencies
@@ -218,7 +218,7 @@ Edit `appcast.xml` with new release details:
     </description>
     <pubDate>Thu, 19 Dec 2024 10:00:00 +0000</pubDate>
     <enclosure
-        url="https://github.com/shenglong209/MacGuard/releases/download/v1.3.4/MacGuard-1.3.4.dmg"
+        url="https://github.com/royalskynet/MacGuard-Enhanced/releases/download/v1.3.4/MacGuard-1.3.4.dmg"
         sparkle:version="1.3.4"
         sparkle:shortVersionString="1.3.4"
         length="15728640"
@@ -317,6 +317,18 @@ Location: `.github/workflows/release.yml`
 4. GitHub Actions automatically builds and releases
 
 #### Method 2: Manual Workflow Dispatch
+From a shell with an authenticated GitHub CLI:
+
+```bash
+./scripts/release.sh patch   # or minor / major
+```
+
+After confirmation, the helper dispatches `release.yml` on remote `main` with
+`bump_type`. It does not edit files, commit, or push local changes. A push to
+`main` alone does not trigger this release workflow.
+
+Alternatively:
+
 1. Navigate to GitHub repository → Actions → Release
 2. Click "Run workflow"
 3. Select branch (usually `main`)
@@ -386,18 +398,23 @@ Required secrets (Settings → Secrets and variables → Actions):
 ## Distribution
 
 ### GitHub Releases
-- **URL:** https://github.com/shenglong209/MacGuard/releases
+- **URL:** https://github.com/royalskynet/MacGuard-Enhanced/releases
 - **Format:** DMG files attached to releases
 - **Versioning:** Semantic versioning (v1.3.4)
 
 ### Sparkle Auto-Update
 - **Feed URL:** https://raw.githubusercontent.com/shenglong209/MacGuard/main/appcast.xml
+- **Fork status:** The configured feed and checked-in public key remain upstream.
+  The release workflow references `SPARKLE_PRIVATE_KEY` / `SPARKLE_PUBLIC_KEY`
+  secrets and proposes an appcast update PR, but no fork releases or Actions runs
+  were available to verify, and secret access was denied. Its generated download
+  URLs also still target upstream. Do not treat fork auto-updates as configured.
 - **Update Check:** Daily (86400 seconds)
 - **Delivery:** Automatic download and installation
 
 ### Direct Download
 Users can download DMG directly from GitHub Releases:
-1. Navigate to https://github.com/shenglong209/MacGuard/releases
+1. Navigate to https://github.com/royalskynet/MacGuard-Enhanced/releases
 2. Download `MacGuard-{version}.dmg`
 3. Open DMG
 4. Drag MacGuard.app to Applications folder
@@ -408,7 +425,7 @@ Users can download DMG directly from GitHub Releases:
 ## Installation Instructions for Users
 
 ### Standard Installation (DMG)
-1. Download `MacGuard-1.3.4.dmg` from [GitHub Releases](https://github.com/shenglong209/MacGuard/releases)
+1. Download `MacGuard-1.3.4.dmg` from [GitHub Releases](https://github.com/royalskynet/MacGuard-Enhanced/releases)
 2. Open the DMG file
 3. Drag `MacGuard.app` to the `Applications` folder
 4. **First launch (unsigned apps only):**
@@ -584,7 +601,7 @@ hdiutil detach /Volumes/MacGuard
 **Cause:** DMG URL not accessible or GitHub Release not created
 **Solution:**
 1. Verify DMG uploaded to GitHub Release
-2. Check URL in appcast.xml (should be `https://github.com/shenglong209/MacGuard/releases/download/v1.3.4/MacGuard-1.3.4.dmg`)
+2. Check URL in appcast.xml (for fork releases, use `https://github.com/royalskynet/MacGuard-Enhanced/releases/download/v1.3.4/MacGuard-1.3.4.dmg`)
 3. Test URL in browser
 
 ---
@@ -683,5 +700,5 @@ Update `appcast.xml` release notes with:
 - [GitHub Actions](https://github.com/features/actions)
 
 ### Support
-- [GitHub Issues](https://github.com/shenglong209/MacGuard/issues)
-- [GitHub Discussions](https://github.com/shenglong209/MacGuard/discussions)
+- [GitHub Issues](https://github.com/royalskynet/MacGuard-Enhanced/issues)
+- [GitHub Discussions](https://github.com/royalskynet/MacGuard-Enhanced/discussions)

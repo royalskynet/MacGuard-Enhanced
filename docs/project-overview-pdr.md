@@ -408,7 +408,7 @@ See `docs/project-roadmap.md` for detailed roadmap and planned enhancements.
 ### Open Source License
 - MIT License (permissive, commercial use allowed)
 - Copyright: Sheng Long (2024-2025)
-- Repository: https://github.com/shenglong209/MacGuard
+- Repository: https://github.com/royalskynet/MacGuard-Enhanced
 
 ### Third-Party Licenses
 - Sparkle: MIT License (compatible)
@@ -424,6 +424,6 @@ See `docs/project-roadmap.md` for detailed roadmap and planned enhancements.
 - **EdDSA:** Edwards-curve Digital Signature Algorithm (appcast signing)
 
 ### References
-- [GitHub Repository](https://github.com/shenglong209/MacGuard)
+- [GitHub Repository](https://github.com/royalskynet/MacGuard-Enhanced)
 - [Sparkle Documentation](https://sparkle-project.org/documentation/)
 - [Apple Developer Documentation](https://developer.apple.com/documentation/)

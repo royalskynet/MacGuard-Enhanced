@@ -1,15 +1,14 @@
 #!/bin/bash
-# release.sh - Trigger a new MacGuard release
+# release.sh - Dispatch a MacGuard release from main
 # Usage: ./scripts/release.sh [patch|minor|major]
 # Example: ./scripts/release.sh patch
 #
-# This script bumps the version and pushes to main.
-# GitHub Actions handles the rest (build, sign, release, appcast update).
+# GitHub Actions bumps the version, builds, signs and publishes the release.
 
 set -e
 
 BUMP_TYPE="${1:-patch}"
-INFO_PLIST="Info.plist"
+REPO="royalskynet/MacGuard-Enhanced"
 
 # Validate bump type
 case "$BUMP_TYPE" in
@@ -23,69 +22,27 @@ case "$BUMP_TYPE" in
         ;;
 esac
 
-# Ensure working directory is clean
-if [ -n "$(git status --porcelain)" ]; then
-    echo "❌ Working directory has uncommitted changes. Please commit or stash first."
-    exit 1
-fi
-
-# Ensure we're on main branch
-CURRENT_BRANCH=$(git branch --show-current)
-if [ "$CURRENT_BRANCH" != "main" ]; then
-    echo "❌ Not on main branch (currently on: $CURRENT_BRANCH)"
-    echo "   Switch to main: git checkout main"
-    exit 1
-fi
-
-# Pull latest changes
-echo "📥 Pulling latest changes..."
-git pull --rebase
-
-# Extract current version
-CURRENT_VERSION=$(grep -A1 'CFBundleShortVersionString' "$INFO_PLIST" | grep string | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
-
-if [ -z "$CURRENT_VERSION" ]; then
-    echo "❌ Could not find version in $INFO_PLIST"
-    exit 1
-fi
-
-# Parse and bump version
-IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
-
-case "$BUMP_TYPE" in
-    major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
-    minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
-    patch) PATCH=$((PATCH + 1)) ;;
-esac
-
-NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+command -v gh >/dev/null || { echo "GitHub CLI (gh) is required."; exit 1; }
 
 echo ""
 echo "=== MacGuard Release ==="
-echo "📦 Version: $CURRENT_VERSION -> $NEW_VERSION ($BUMP_TYPE)"
+echo "Repository: $REPO"
+echo "Source: remote main (local changes are not included)"
+echo "Version bump: $BUMP_TYPE"
 echo ""
 
 # Confirm
-read -p "Proceed with release? [y/N] " -n 1 -r
+read -p "Dispatch release workflow? [y/N] " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo "Cancelled."
     exit 0
 fi
 
-# Update Info.plist
-sed -i '' "s/<string>$CURRENT_VERSION<\/string>/<string>$NEW_VERSION<\/string>/" "$INFO_PLIST"
-echo "✅ Version bumped to $NEW_VERSION"
-
-# Commit and push
-git add "$INFO_PLIST"
-git commit -m "chore: release v$NEW_VERSION"
-git push
+gh workflow run release.yml --repo "$REPO" --ref main -f "bump_type=$BUMP_TYPE"
 
 echo ""
-echo "=== Release Triggered ==="
-echo "✅ Pushed to main"
-echo "🚀 GitHub Actions will build and release v$NEW_VERSION"
+echo "=== Release Workflow Dispatched ==="
 echo ""
-echo "Monitor: https://github.com/shenglong209/MacGuard/actions"
-echo "Release: https://github.com/shenglong209/MacGuard/releases/tag/v$NEW_VERSION (after CI completes)"
+echo "Monitor: https://github.com/$REPO/actions/workflows/release.yml"
+echo "Releases: https://github.com/$REPO/releases"

@@ -566,7 +566,7 @@ No legacy features planned for removal at this time.
 | v1.0.0 | 2024-10-01 | Initial release |
 
 ### References
-- [GitHub Repository](https://github.com/shenglong209/MacGuard)
-- [GitHub Releases](https://github.com/shenglong209/MacGuard/releases)
-- [GitHub Issues](https://github.com/shenglong209/MacGuard/issues)
+- [GitHub Repository](https://github.com/royalskynet/MacGuard-Enhanced)
+- [GitHub Releases](https://github.com/royalskynet/MacGuard-Enhanced/releases)
+- [GitHub Issues](https://github.com/royalskynet/MacGuard-Enhanced/issues)
 - [Sparkle Documentation](https://sparkle-project.org/documentation/)
